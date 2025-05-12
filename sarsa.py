@@ -4,8 +4,9 @@ import minigrid as mg
 import gymnasium as gym
 import numpy as np
 import random
-from gymnasium.wrappers import FlattenObservation
-from gymnasium.spaces.utils import flatten_space
+
+from gymnasium.wrappers import TimeLimit
+from minigrid.wrappers import SymbolicObsWrapper
 
 def choose_action(state, Q):
     if random.random() < epsilon:
@@ -22,11 +23,11 @@ def check_state(s, Q):
     if s not in Q:
         Q[s] = np.zeros((4,1))
 
-def train(env):
-    Q = {}
+def train(env, Q = {}):
     episode = 0
+    steps_arr = []
     while episode < max_episodes:
-        observation = env.reset()
+        observation = env.reset(seed=env.np_random_seed)
         step = 0
         done = False
         # print(observation)
@@ -51,19 +52,26 @@ def train(env):
                 break
 
         episode += 1
+        steps_arr.append(step)
         print(f'episode {episode}, Done: {done}, Steps: {step}')
-    return Q
+    return (Q, steps_arr)
 
-env = gym.make("MiniGrid-FourRooms-v0")
 
-epsilon = 0.3
+epsilon = 0.2
 gamma = 0.95
 learn_rate = 0.8
 max_episodes = 1000
 max_steps = 10000
 
-trained_Q = train(env)
+env = SymbolicObsWrapper(TimeLimit(gym.make("MiniGrid-FourRooms-v0"), max_episode_steps=max_steps))
+
+# with open('sarsa_q.dict', 'rb') as file:
+#     starting_Q = pickle.load(file)
+starting_Q = {}
+trained_Q, steps_arr = train(env, Q=starting_Q)
+
 with open('sarsa_q.dict', 'wb') as file:
     pickle.dump(trained_Q, file)
 # print(trained_Q)
+print(steps_arr)
 
