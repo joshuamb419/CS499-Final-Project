@@ -67,7 +67,7 @@ learn_rate = 0.5
 max_episodes = 1000
 max_steps = 10000
 
-env = SymbolicObsWrapper(TimeLimit(gym.make("MiniGrid-FourRooms-v0"), max_episode_steps=max_steps))
+env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps))
 
 # with open('sarsa_q.dict', 'rb') as file:
 #     starting_Q = pickle.load(file)
