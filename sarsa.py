@@ -4,6 +4,7 @@ import minigrid as mg
 import gymnasium as gym
 import numpy as np
 import random
+import csv
 
 from gymnasium.wrappers import TimeLimit
 from minigrid.wrappers import SymbolicObsWrapper
@@ -66,7 +67,7 @@ def train(env, Q = {}):
         steps_arr.append(step)
         reward_arr.append(total_reward)
         print(f'episode {episode}, Done: {done}, Steps: {step}, Reward: {total_reward}')
-    return (Q, steps_arr, reward_arr)
+    return (Q, steps_arr, reward_arr, env_seeds)
 
 
 epsilon = 0.2
@@ -81,11 +82,20 @@ env = gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps)
 # with open('sarsa_q.dict', 'rb') as file:
 #     starting_Q = pickle.load(file)
 starting_Q = {}
-trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
+trained_Q, steps_arr, reward_arr, seeds = train(env, Q=starting_Q)
 
 with open('sarsa_q.dict', 'wb') as file:
     pickle.dump(trained_Q, file)
 # print(trained_Q)
+
 print(steps_arr)
 print(reward_arr)
+print(seeds)
+
+with open('learning.csv', 'wb') as file:
+    writer = csv.writer(file)
+    writer.writerow(steps_arr)
+    writer.writerow(reward_arr)
+    writer.writerow(seeds)
+
 
