@@ -1,4 +1,5 @@
 import pickle
+import sys
 
 import minigrid as mg
 import gymnasium as gym
@@ -32,7 +33,9 @@ def train(env, Q = {}):
     while episode < max_episodes:
         observation = None
         if episode < env_count:
-            observation = env.reset()
+            temp_seed = random.randint(0, sys.maxsize)
+            observation = env.reset(seed=temp_seed)
+            env_seeds.append(temp_seed)
         else:
             observation = env.reset(seed=env_seeds[episode % env_count])
 
@@ -61,8 +64,6 @@ def train(env, Q = {}):
             if done:
                 break
 
-        if episode < env_count:
-            env_seeds.append(env.np_random_seed)
         episode += 1
         steps_arr.append(step)
         reward_arr.append(total_reward)
