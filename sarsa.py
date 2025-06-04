@@ -31,9 +31,8 @@ def train(env, Q = {}):
     reward_arr = []
     while episode < max_episodes:
         observation = None
-        if len(env_seeds) < env_count:
+        if episode < env_count:
             observation = env.reset()
-            env_seeds.append(env.np_random_seed)
         else:
             observation = env.reset(seed=env_seeds[episode % env_count])
 
@@ -62,6 +61,8 @@ def train(env, Q = {}):
             if done:
                 break
 
+        if episode < env_count:
+            env_seeds.append(env.np_random_seed)
         episode += 1
         steps_arr.append(step)
         reward_arr.append(total_reward)
