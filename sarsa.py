@@ -112,12 +112,12 @@ def randomize_agent_start(env):
     env.agent_pos = agent_pos
     env.agent_dir = agent_dir
 
-epsilon = 0.2
+epsilon = 0.4
 gamma = 0.95
 learn_rate = 0.5
-max_episodes = 10000
-max_steps = 5000
-trials = 10
+max_episodes = 100000
+max_steps = 10000
+trials = 5
 
 
 # with open('sarsa_q.dict', 'rb') as file:
@@ -129,7 +129,7 @@ for i in range(trials):
     trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
     trial_rewards.append(reward_arr)
 
-with open('random_goal_and_start_learning.csv', 'w') as file:
+with open('random_goal_and_start_100000_step.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(trial_rewards)
 

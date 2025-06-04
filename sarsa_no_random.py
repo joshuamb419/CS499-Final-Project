@@ -14,7 +14,10 @@ def choose_action(state, Q):
     if random.random() < epsilon:
         return random.randint(0, 2)
     else:
-        return np.argmax(Q[state][:])
+        if Q[state][0] == Q[state][1] and Q[state][1] == Q[state][2]:
+            return 2
+        else:
+            return np.argmax(Q[state][:])
 
 def improve(s1, a1, r, s2, a2, Q):
     original = Q[s1][a1]
@@ -64,11 +67,11 @@ def train(env, Q = {}):
     return (Q, steps_arr, reward_arr)
 
 
-epsilon = 0.2
+epsilon = 0.6
 gamma = 0.95
 learn_rate = 0.5
-max_episodes = 300
-max_steps = 5000
+max_episodes = 80
+max_steps = 2000
 trials = 50
 
 
@@ -76,12 +79,13 @@ trials = 50
 #     starting_Q = pickle.load(file)
 trial_rewards = []
 for i in range(trials):
+    print(f"Trial: {i}")
     env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps))
     starting_Q = {}
     trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
     trial_rewards.append(reward_arr)
 
-with open('no_random_learning.csv', 'w') as file:
+with open('allepsilon.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(trial_rewards)
 
