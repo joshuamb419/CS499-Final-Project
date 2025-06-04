@@ -10,7 +10,7 @@ from minigrid.wrappers import SymbolicObsWrapper
 
 def choose_action(state, Q):
     if random.random() < epsilon:
-        return random.randint(0, 3)
+        return random.randint(0, 2)
     else:
         return np.argmax(Q[state][:])
 
@@ -21,7 +21,7 @@ def improve(s1, a1, r, s2, a2, Q):
 
 def check_state(s, Q):
     if s not in Q:
-        Q[s] = np.zeros((4,1))
+        Q[s] = np.zeros((3,1))
 
 def train(env, Q = {}):
     episode = 0
