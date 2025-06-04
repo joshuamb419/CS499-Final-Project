@@ -57,7 +57,7 @@ def train(env, Q = {}):
         episode += 1
         steps_arr.append(step)
         reward_arr.append(total_reward)
-        print(f'episode {episode}, Done: {done}, Steps: {step}')
+        print(f'episode {episode}, Done: {done}, Steps: {step}, Reward: {total_reward}')
     return (Q, steps_arr, reward_arr)
 
 
@@ -65,7 +65,7 @@ epsilon = 0.2
 gamma = 0.95
 learn_rate = 0.5
 max_episodes = 1000
-max_steps = 10000
+max_steps = 5000
 
 env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps))
 
