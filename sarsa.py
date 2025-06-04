@@ -91,7 +91,7 @@ print(steps_arr)
 print(reward_arr)
 print(seeds)
 
-with open('learning.csv', 'wb') as file:
+with open('learning.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerow(steps_arr)
     writer.writerow(reward_arr)
