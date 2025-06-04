@@ -27,7 +27,7 @@ def train(env, Q = {}):
     episode = 0
     steps_arr = []
     while episode < max_episodes:
-        observation = env.reset(seed=env.np_random_seed)
+        observation = env.reset()
         step = 0
         done = False
         # print(observation)
@@ -59,7 +59,7 @@ def train(env, Q = {}):
 
 epsilon = 0.2
 gamma = 0.95
-learn_rate = 0.8
+learn_rate = 0.2
 max_episodes = 1000
 max_steps = 10000
 
