@@ -24,11 +24,19 @@ def check_state(s, Q):
         Q[s] = np.zeros((3,1))
 
 def train(env, Q = {}):
+    env_seeds = []
     episode = 0
     steps_arr = []
     reward_arr = []
     while episode < max_episodes:
-        observation = env.reset()
+        observation = None
+        if len(env_seeds) < env_count:
+            observation = env.reset()
+            env_seeds.append(env.np_random_seed)
+        else:
+            seed_index = random.randint(0, env_count - 1)
+            observation = env.reset(seed=env_seeds[seed_index])
+
         step = 0
         total_reward = 0
         done = False
@@ -64,10 +72,11 @@ def train(env, Q = {}):
 epsilon = 0.2
 gamma = 0.95
 learn_rate = 0.5
-max_episodes = 1000
+max_episodes = 20000
 max_steps = 5000
+env_count = 50
 
-env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps))
+env = gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps)
 
 # with open('sarsa_q.dict', 'rb') as file:
 #     starting_Q = pickle.load(file)
