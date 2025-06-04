@@ -9,8 +9,6 @@ import csv
 
 from gymnasium.wrappers import TimeLimit
 from minigrid.wrappers import SymbolicObsWrapper
-from minigrid.core.world_object import Wall
-from minigrid.core.world_object import Goal
 
 def choose_action(state, Q):
     if random.random() < epsilon:
@@ -32,9 +30,7 @@ def train(env, Q = {}):
     steps_arr = []
     reward_arr = []
     while episode < max_episodes:
-        observation = env.reset(seed = env.np_random_seed)
-        randomize_goal_position(env)
-        randomize_agent_start(env)
+        observation = env.reset(seed=env.np_random_seed)
 
         step = 0
         total_reward = 0
@@ -67,57 +63,13 @@ def train(env, Q = {}):
         print(f'episode {episode}, Done: {done}, Steps: {step}, Reward: {total_reward}')
     return (Q, steps_arr, reward_arr)
 
-def randomize_goal_position(env):
-    """Randomly place the goal object on a free (non-wall) tile."""
-    env = env.unwrapped  # Access raw MiniGrid environment
-    width, height = env.width, env.height
-
-    # Clear existing goal
-    for x in range(width):
-        for y in range(height):
-            obj = env.grid.get(x, y)
-            if obj and obj.type == 'goal':
-                env.grid.set(x, y, None)
-
-    # Find valid empty locations
-    free_positions = []
-    for x in range(width):
-        for y in range(height):
-            obj = env.grid.get(x, y)
-            if obj is None:
-                free_positions.append((x, y))
-
-    # Choose a random free location
-    goal_pos = random.choice(free_positions)
-    env.grid.set(*goal_pos, Goal())
-    env.goal_pos = goal_pos
-
-def randomize_agent_start(env):
-    """Randomly place the agent somewhere on a free tile."""
-    env = env.unwrapped
-    width, height = env.width, env.height
-
-    # Find free (non-wall, non-object) positions
-    free_positions = []
-    for x in range(width):
-        for y in range(height):
-            cell = env.grid.get(x, y)
-            if cell is None or cell.type not in ['wall', 'goal']:
-                free_positions.append((x, y))
-
-    # Pick a random free position
-    agent_pos = random.choice(free_positions)
-    agent_dir = random.randint(0, 2)
-
-    env.agent_pos = agent_pos
-    env.agent_dir = agent_dir
 
 epsilon = 0.2
 gamma = 0.95
 learn_rate = 0.5
-max_episodes = 10000
+max_episodes = 300
 max_steps = 5000
-trials = 10
+trials = 50
 
 
 # with open('sarsa_q.dict', 'rb') as file:
@@ -129,7 +81,20 @@ for i in range(trials):
     trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
     trial_rewards.append(reward_arr)
 
-with open('random_goal_and_start_learning.csv', 'w') as file:
+with open('no_random_learning.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(trial_rewards)
+
+# with open('sarsa_q_no_random.dict', 'wb') as file:
+#     pickle.dump(trained_Q, file)
+# print(trained_Q)
+
+# print(steps_arr)
+# print(reward_arr)
+
+# with open('learning.csv', 'w') as file:
+#     writer = csv.writer(file)
+#     writer.writerow(steps_arr)
+#     writer.writerow(reward_arr)
+
 
