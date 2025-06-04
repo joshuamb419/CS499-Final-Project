@@ -11,6 +11,12 @@ import gymnasium as gym
 from collections import defaultdict
 # Import symbolic observation wrapper
 from minigrid.wrappers import SymbolicObsWrapper
+from gymnasium.wrappers import TimeLimit
+
+from minigrid.core.constants import DIR_TO_VEC
+from minigrid.core.world_object import Wall
+from minigrid.core.world_object import Goal
+
 # Import other libs
 import os
 import random
@@ -18,27 +24,73 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
+def randomize_agent_start(env):
+    """Randomly place the agent somewhere on a free tile."""
+    env = env.unwrapped
+    width, height = env.width, env.height
+
+    # Find free (non-wall, non-object) positions
+    free_positions = []
+    for x in range(width):
+        for y in range(height):
+            cell = env.grid.get(x, y)
+            if cell is None or cell.type not in ['wall', 'goal']:
+                free_positions.append((x, y))
+
+    # Pick a random free position
+    agent_pos = random.choice(free_positions)
+    agent_dir = random.randint(0, 2)
+
+    env.agent_pos = agent_pos
+    env.agent_dir = agent_dir
+
+def randomize_goal_position(env):
+    """Randomly place the goal object on a free (non-wall) tile."""
+    env = env.unwrapped  # Access raw MiniGrid environment
+    width, height = env.width, env.height
+
+    # Clear existing goal
+    for x in range(width):
+        for y in range(height):
+            obj = env.grid.get(x, y)
+            if obj and obj.type == 'goal':
+                env.grid.set(x, y, None)
+
+    # Find valid empty locations
+    free_positions = []
+    for x in range(width):
+        for y in range(height):
+            obj = env.grid.get(x, y)
+            if obj is None:
+                free_positions.append((x, y))
+
+    # Choose a random free location
+    goal_pos = random.choice(free_positions)
+    env.grid.set(*goal_pos, Goal())
+    env.goal_pos = goal_pos
+
+
 class FirstVisitMonteCarlo:
     """First Visit Monte Carlo Control for the Four Rooms environment."""
     def __init__(self, env, Q={}):
         self.env = env
         self.gamma = 0.95
         self.max_episodes = 300
-        self.max_steps = 5000
-        self.epsilon = 0.2
+        self.max_steps = 10000
+        self.epsilon = 0.4
         self.Q = Q
         # Dictionary to sum returns for each state.
         self.Returns = defaultdict(list)
     
     def check_state(self, s):
         if s not in self.Q:
-            self.Q[s] = np.zeros((4,1))
+            self.Q[s] = np.zeros((3,1))
 
     def pick_action(self, state):
         """Selects an action based on the epsilon-greedy policy."""
         # Exploitation: 
         if np.random.rand() < self.epsilon:
-            return random.randint(0, 3)
+            return random.randint(0, 2)
         else:
             # Select the best action based on Q values
             return np.argmax(self.Q[state][:])
@@ -52,6 +104,8 @@ class FirstVisitMonteCarlo:
             # For training purpose, set env to the specific state:
             # obs, _ = env.reset()
             obs, _ = env.reset(seed=env.np_random_seed)
+            # randomize_agent_start(env)
+            randomize_goal_position(env)
             step = 0
             done = False
             # Generate an episode:
@@ -68,24 +122,29 @@ class FirstVisitMonteCarlo:
                 # state2 = (obs2['direction'], tuple(obs2['image'].flatten()))
                 state2 = (obs2['direction'], obs2['image'].data.tobytes())
                 # Apeend the state, action, and reward to the episode
-                reward = reward if done else -0.5
+                # reward = reward if done else -0.5
                 episode_state.append((state, action, reward))
                 state = state2
                 step += 1
 
             G = 0
             visited = set()
-            for t, (state, action, reward) in enumerate(episode_state):
+            for t in reversed(range(len(episode_state))):
+                state, action, reward = episode_state[t]
                 G = self.gamma * G + reward
-                if (state, action) not in visited:
-                    visited.add((state, action))
-                    # if state not in self.Q:
-                    #     self.Q[state] = np.zeros((4))
+
+                if state not in visited:
+                    visited.add(state)
+
+                    if state not in self.Q:
+                        self.Q[state] = np.zeros((3))
                     
                     if (state, action) not in self.Returns:
                         self.Returns[(state, action)] = []
 
                     self.Returns[(state, action)].append(G)
+                    # Update the Q value
+                    self.Q[state][action] = np.mean(self.Returns[(state, action)])
 
             episode_reward = sum([r for _, _, r in episode_state])
             rewards_per_episode.append(episode_reward)
@@ -124,11 +183,13 @@ def plot_graph(all_rewards):
 if __name__ == "__main__":
     rewards_arr = []
 
-    for trial in range(50):
+    for trial in range(2):
         # Create and initialize the environment
-        env = gym.make("MiniGrid-FourRooms-v0")
-        # env = gym.make("MiniGrid-FourRooms-v0", render_mode='human')
-        env = SymbolicObsWrapper(env)
+        # env = gym.make("MiniGrid-FourRooms-v0")
+        # # env = gym.make("MiniGrid-FourRooms-v0", render_mode='human')
+        # # env = SymbolicObsWrapper(env)
+        # env = SymbolicObsWrapper(TimeLimit(env, max_episode_steps=5000))
+        env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=10000))
         
         try:
             with open('firstvisitmc.dict', 'rb') as file:
