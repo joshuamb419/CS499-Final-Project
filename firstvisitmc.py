@@ -24,51 +24,38 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
-def randomize_agent_start(env):
-    """Randomly place the agent somewhere on a free tile."""
-    env = env.unwrapped
+def randomize(env):
+    """Randomly place the agent and the goal on different free (non-wall) tiles."""
+    env = env.unwrapped  # Access the raw MiniGrid environment
     width, height = env.width, env.height
 
-    # Find free (non-wall, non-object) positions
+    # Collect all valid (non-wall, non-object) positions
     free_positions = []
     for x in range(width):
         for y in range(height):
             cell = env.grid.get(x, y)
-            if cell is None or cell.type not in ['wall', 'goal']:
+            if cell is None:
                 free_positions.append((x, y))
 
-    # Pick a random free position
-    agent_pos = random.choice(free_positions)
-    agent_dir = random.randint(0, 2)
+    # Randomly select positions (agent and goal must be different)
+    positions = random.sample(free_positions, 2)
+    agent_pos, goal_pos = positions
 
+    # Set agent
+    agent_dir = random.randint(0, 2)
     env.agent_pos = agent_pos
     env.agent_dir = agent_dir
 
-def randomize_goal_position(env):
-    """Randomly place the goal object on a free (non-wall) tile."""
-    env = env.unwrapped  # Access raw MiniGrid environment
-    width, height = env.width, env.height
-
-    # Clear existing goal
+    # Clear any existing goal(s)
     for x in range(width):
         for y in range(height):
             obj = env.grid.get(x, y)
             if obj and obj.type == 'goal':
                 env.grid.set(x, y, None)
 
-    # Find valid empty locations
-    free_positions = []
-    for x in range(width):
-        for y in range(height):
-            obj = env.grid.get(x, y)
-            if obj is None:
-                free_positions.append((x, y))
-
-    # Choose a random free location
-    goal_pos = random.choice(free_positions)
+    # Set new goal
     env.grid.set(*goal_pos, Goal())
     env.goal_pos = goal_pos
-
 
 class FirstVisitMonteCarlo:
     """First Visit Monte Carlo Control for the Four Rooms environment."""
@@ -77,7 +64,7 @@ class FirstVisitMonteCarlo:
         self.gamma = 0.95
         self.max_episodes = 300
         self.max_steps = 10000
-        self.epsilon = 0.4
+        self.epsilon = 0.6
         self.Q = Q
         # Dictionary to sum returns for each state.
         self.Returns = defaultdict(list)
@@ -104,8 +91,8 @@ class FirstVisitMonteCarlo:
             # For training purpose, set env to the specific state:
             # obs, _ = env.reset()
             obs, _ = env.reset(seed=env.np_random_seed)
-            # randomize_agent_start(env)
-            randomize_goal_position(env)
+            # randomize(env)
+
             step = 0
             done = False
             # Generate an episode:
@@ -183,13 +170,13 @@ def plot_graph(all_rewards):
 if __name__ == "__main__":
     rewards_arr = []
 
-    for trial in range(2):
+    for trial in range(10):
         # Create and initialize the environment
         # env = gym.make("MiniGrid-FourRooms-v0")
         # # env = gym.make("MiniGrid-FourRooms-v0", render_mode='human')
         # # env = SymbolicObsWrapper(env)
         # env = SymbolicObsWrapper(TimeLimit(env, max_episode_steps=5000))
-        env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=10000))
+        env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=2000))
         
         try:
             with open('firstvisitmc.dict', 'rb') as file:
