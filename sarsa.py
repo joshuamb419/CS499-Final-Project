@@ -72,7 +72,7 @@ def train(env, Q = {}):
 epsilon = 0.2
 gamma = 0.95
 learn_rate = 0.5
-max_episodes = 20000
+max_episodes = 10000
 max_steps = 5000
 env_count = 50
 
