@@ -28,44 +28,38 @@ def train(env, Q = {}):
     steps_arr = []
     while episode < max_episodes:
         observation = env.reset()
-        trial = 0
-        while trial < trials:
-            env.reset(seed = env.np_random_seed)
-            step = 0
-            done = False
-            # print(observation)
+        step = 0
+        done = False
+        # print(observation)
 
-            s = (observation[0]['direction'], observation[0]['image'].data.tobytes())
-            check_state(s, Q)
-            a = choose_action(s, Q)
+        s = (observation[0]['direction'], observation[0]['image'].data.tobytes())
+        check_state(s, Q)
+        a = choose_action(s, Q)
 
-            while step < max_steps:
-                # print(env.step(a))
-                o2, r, done, info, info2 = env.step(a)
-                s2 = (o2['direction'], o2['image'].data.tobytes())
-                check_state(s2, Q)
-                a2 = choose_action(s2, Q)
+        while step < max_steps:
+            # print(env.step(a))
+            o2, r, done, info, info2 = env.step(a)
+            s2 = (o2['direction'], o2['image'].data.tobytes())
+            check_state(s2, Q)
+            a2 = choose_action(s2, Q)
 
-                improve(s, a, r, s2, a2, Q)
+            improve(s, a, r, s2, a2, Q)
 
-                s = s2
-                a = a2
-                step += 1
-                if done:
-                    break
-
-            steps_arr.append(step)
-            print(f'episode: {episode}, trial: {trial}, Done: {done}, Steps: {step}')            
-            trial += 1
+            s = s2
+            a = a2
+            step += 1
+            if done:
+                break
 
         episode += 1
+        steps_arr.append(step)
+        print(f'episode {episode}, Done: {done}, Steps: {step}')
     return (Q, steps_arr)
 
 
 epsilon = 0.2
 gamma = 0.95
-learn_rate = 0.2
-trials = 5
+learn_rate = 0.5
 max_episodes = 1000
 max_steps = 10000
 
