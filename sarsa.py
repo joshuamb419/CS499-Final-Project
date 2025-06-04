@@ -35,8 +35,7 @@ def train(env, Q = {}):
             observation = env.reset()
             env_seeds.append(env.np_random_seed)
         else:
-            seed_index = random.randint(0, env_count - 1)
-            observation = env.reset(seed=env_seeds[seed_index])
+            observation = env.reset(seed=env_seeds[episode % env_count])
 
         step = 0
         total_reward = 0
