@@ -59,15 +59,15 @@ def train(env, Q = {}):
 
 epsilon = 0.2
 gamma = 0.95
-learn_rate = 0.1
-max_episodes = 10000
+learn_rate = 0.8
+max_episodes = 1000
 max_steps = 10000
 
-env = TimeLimit(gym.make("MiniGrid-FourRooms-v0"), max_episode_steps=max_steps)
+env = SymbolicObsWrapper(TimeLimit(gym.make("MiniGrid-FourRooms-v0"), max_episode_steps=max_steps))
 
-with open('sarsa_q.dict', 'rb') as file:
-    starting_Q = pickle.load(file)
-# starting_Q = {}
+# with open('sarsa_q.dict', 'rb') as file:
+#     starting_Q = pickle.load(file)
+starting_Q = {}
 trained_Q, steps_arr = train(env, Q=starting_Q)
 
 with open('sarsa_q.dict', 'wb') as file:
