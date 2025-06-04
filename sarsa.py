@@ -26,9 +26,11 @@ def check_state(s, Q):
 def train(env, Q = {}):
     episode = 0
     steps_arr = []
+    reward_arr = []
     while episode < max_episodes:
         observation = env.reset()
         step = 0
+        total_reward = 0
         done = False
         # print(observation)
 
@@ -48,13 +50,15 @@ def train(env, Q = {}):
             s = s2
             a = a2
             step += 1
+            total_reward += r
             if done:
                 break
 
         episode += 1
         steps_arr.append(step)
+        reward_arr.append(total_reward)
         print(f'episode {episode}, Done: {done}, Steps: {step}')
-    return (Q, steps_arr)
+    return (Q, steps_arr, reward_arr)
 
 
 epsilon = 0.2
@@ -65,13 +69,14 @@ max_steps = 10000
 
 env = SymbolicObsWrapper(TimeLimit(gym.make("MiniGrid-FourRooms-v0"), max_episode_steps=max_steps))
 
-with open('sarsa_q.dict', 'rb') as file:
-    starting_Q = pickle.load(file)
-# starting_Q = {}
-trained_Q, steps_arr = train(env, Q=starting_Q)
+# with open('sarsa_q.dict', 'rb') as file:
+#     starting_Q = pickle.load(file)
+starting_Q = {}
+trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
 
 with open('sarsa_q.dict', 'wb') as file:
     pickle.dump(trained_Q, file)
 # print(trained_Q)
 print(steps_arr)
+print(reward_arr)
 
