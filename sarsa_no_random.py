@@ -67,10 +67,10 @@ def train(env, Q = {}):
     return (Q, steps_arr, reward_arr)
 
 
-epsilon = 0.6
+epsilon = 0.2
 gamma = 0.95
 learn_rate = 0.5
-max_episodes = 80
+max_episodes = 700
 max_steps = 2000
 trials = 50
 
@@ -85,13 +85,13 @@ for i in range(trials):
     trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
     trial_rewards.append(reward_arr)
 
-with open('allepsilon.csv', 'w') as file:
+with open('eps_trials.csv', 'w') as file:
     writer = csv.writer(file)
     writer.writerows(trial_rewards)
 
-# with open('sarsa_q_no_random.dict', 'wb') as file:
-#     pickle.dump(trained_Q, file)
-# print(trained_Q)
+with open('sarsa_q_no_random.dict', 'wb') as file:
+     pickle.dump(trained_Q, file)
+print(trained_Q)
 
 # print(steps_arr)
 # print(reward_arr)
