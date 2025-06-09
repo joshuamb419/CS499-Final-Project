@@ -67,31 +67,38 @@ def train(env, Q = {}):
     return (Q, steps_arr, reward_arr)
 
 
-epsilon = 0.2
+epsilon = 0.1
+epsilon_increment = 0.1
+epsilon_steps = 10
 gamma = 0.95
 learn_rate = 0.5
 max_episodes = 700
 max_steps = 2000
-trials = 50
+trials = 10
 
 
 # with open('sarsa_q.dict', 'rb') as file:
 #     starting_Q = pickle.load(file)
-trial_rewards = []
-for i in range(trials):
-    print(f"Trial: {i}")
-    env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps))
-    starting_Q = {}
-    trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
-    trial_rewards.append(reward_arr)
+epsilon_rewards = []
+for epi in range(epsilon_steps):
+    trial_rewards = []
+    for i in range(trials):
+        print(f"Trial: {i}")
+        env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps))
+        starting_Q = {}
+        trained_Q, steps_arr, reward_arr = train(env, Q=starting_Q)
+        trial_rewards.append(reward_arr)
+
+    epsilon_rewards.append(np.average(trial_rewards, axis=0))
+    epsilon += epsilon_increment
 
 with open('eps_trials.csv', 'w') as file:
     writer = csv.writer(file)
-    writer.writerows(trial_rewards)
+    writer.writerows(epsilon_rewards)
 
-with open('sarsa_q_no_random.dict', 'wb') as file:
-     pickle.dump(trained_Q, file)
-print(trained_Q)
+# with open('sarsa_q_no_random.dict', 'wb') as file:
+#      pickle.dump(trained_Q, file)
+# print(trained_Q)
 
 # print(steps_arr)
 # print(reward_arr)
