@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-all_rewards = [[]]
-with open("no_random_learning_700_ep.csv", 'r') as file:
+# all_rewards = [[]]
+with open("random_goal_and_start_100000_step.csv", 'r') as file:
     text = file.readlines()
     all_rewards = [[float(x) for x in line.split(",")] for line in text]
 
