@@ -36,14 +36,11 @@ def train(env, Q = {}):
         step = 0
         total_reward = 0
         done = False
-        # print(observation)
-
         s = (observation[0]['direction'], observation[0]['image'].data.tobytes())
         check_state(s, Q)
         a = choose_action(s, Q)
 
         while step < max_steps:
-            # print(env.step(a))
             o2, r, done, info, info2 = env.step(a)
             s2 = (o2['direction'], o2['image'].data.tobytes())
             check_state(s2, Q)
