@@ -138,60 +138,6 @@ class FirstVisitMonteCarlo:
     
         return (self.Q, steps_arr, rewards_per_episode)
 
-def plot_graph(all_rewards):
-    """Plots the graph of steps per episode."""
-    # Convert to NumPy array: shape (num_trials, num_episodes)
-    all_rewards_np = np.array(all_rewards)
-
-    # Compute mean and std across trials
-    mean_rewards = np.mean(all_rewards_np, axis=0)
-    std_rewards = np.std(all_rewards_np, axis=0)
-
-    # Plot
-    plt.figure(figsize=(12, 6))
-    plt.plot(mean_rewards, label="Mean Reward", linewidth=2)
-    # plt.fill_between(range(len(mean_rewards)),
-    #                 mean_rewards - std_rewards,
-    #                 mean_rewards + std_rewards,
-    #                 alpha=0.3)
-    plt.fill_between(range(len(mean_rewards)),
-        mean_rewards - std_rewards,
-        mean_rewards + std_rewards,
-        alpha=0.3)
-    plt.xlabel("Episode")
-    plt.ylabel("Average Reward")
-    plt.title("Learning Curve Averaged Over 50 Trials")
-    plt.legend()
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig("learning_curve.png")
-    plt.show()
-
-# def plot_graph(all_rewards, epsilon_values):
-#     """
-#     Plots reward per episode for each epsilon (single trial per epsilon).
-    
-#     Parameters:
-#     - all_rewards: List of 1D lists (each list is reward per episode for one epsilon)
-#     - epsilon_values: List of epsilon values (floats) corresponding to each reward list
-#     """
-#     plt.figure(figsize=(12, 6))
-
-#     for rewards, eps in zip(all_rewards, epsilon_values):
-#         if len(rewards) == 0:
-#             continue
-#         plt.plot(rewards, label=f"ε = {eps:.1f}", linewidth=2)
-
-#     plt.xlabel("Episode")
-#     plt.ylabel("Reward")
-#     plt.title("Learning Curve per Epsilon (1 Trial Each)")
-#     plt.legend()
-#     plt.grid(True)
-#     plt.tight_layout()
-#     plt.savefig("learning_curve_single_trial.png")
-#     plt.show()
-
-
 if __name__ == "__main__":
     rewards_arr = []
 
@@ -202,7 +148,6 @@ if __name__ == "__main__":
         try:
             with open('everyvisitmc.dict', 'rb') as file:
                 starting_Q = pickle.load(file)
-                # os.remove('firstvisitmc.dict')
         except FileNotFoundError:
             starting_Q = {}
 
@@ -235,7 +180,6 @@ if __name__ == "__main__":
 #             try:
 #                 with open('firstvisitmc.dict', 'rb') as file:
 #                     starting_Q = pickle.load(file)
-#                     os.remove('firstvisitmc.dict')
 #             except FileNotFoundError:
 #                 starting_Q = {}
 
