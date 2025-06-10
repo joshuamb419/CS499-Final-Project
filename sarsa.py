@@ -1,15 +1,12 @@
 import pickle
 import sys
 
-import minigrid as mg
 import gymnasium as gym
 import numpy as np
 import random
 import csv
 
-from gymnasium.wrappers import TimeLimit
 from minigrid.wrappers import SymbolicObsWrapper
-from minigrid.core.world_object import Wall
 from minigrid.core.world_object import Goal
 
 def choose_action(state, Q):
@@ -115,13 +112,11 @@ def randomize_agent_start(env):
 epsilon = 0.4
 gamma = 0.95
 learn_rate = 0.5
-max_episodes = 100000
+max_episodes = 1000
 max_steps = 10000
-trials = 5
+trials = 10
 
 
-# with open('sarsa_q.dict', 'rb') as file:
-#     starting_Q = pickle.load(file)
 trial_rewards = []
 for i in range(trials):
     env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=max_steps))
