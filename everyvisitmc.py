@@ -1,12 +1,10 @@
 #########################################################################
-# Description: First Visit Monte Carlo Implementation for the Four Rooms
-# Update:
-    # Date: May 10-12, 2025: First Implementation
-    # Date: May 30, 2025: 
+# Description: Every Visit Monte Carlo Implementation for the Four Rooms
 #########################################################################
 # Import minigrid lib
 import minigrid as mg
 import gymnasium as gym
+
 # Import defaultdict for dictionary with default values
 from collections import defaultdict
 # Import symbolic observation wrapper
@@ -197,10 +195,9 @@ def plot_graph(all_rewards):
 if __name__ == "__main__":
     rewards_arr = []
 
-    for trial in range(5):
+    for trial in range(30):
         # Create and initialize the environment
         env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=5000))
-
         
         try:
             with open('everyvisitmc.dict', 'rb') as file:
@@ -218,9 +215,11 @@ if __name__ == "__main__":
             pickle.dump(trained_Q, file)
         
         print(f'Trial {trial + 1} completed.')
-    
-    # Plot the results
-    plot_graph(rewards_arr)
+        
+        with open('evmc-nonrand.csv', 'w') as file:
+            writer = csv.writer(file)
+            writer.writerows(rewards_arr)
+
 
 # if __name__ == "__main__":
 #     rewards_eps = []
@@ -231,7 +230,7 @@ if __name__ == "__main__":
 #         print(f"Starting training with epsilon: {epsilon}")
 #         for trial in range(3):
 #             # Create and initialize the environment
-            # env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=5000))
+#             env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=5000))
             
 #             try:
 #                 with open('firstvisitmc.dict', 'rb') as file:
@@ -254,6 +253,6 @@ if __name__ == "__main__":
 #         rewards_eps.append(np.average(rewards_trials, axis=0))
 #         epsilon += 0.1
     
-#     with open('mcfv_epsilon.csv', 'w') as file:
+#     with open('mcev_epsilon.csv', 'w') as file:
 #         writer = csv.writer(file)
 #         writer.writerows(rewards_eps)

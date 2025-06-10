@@ -3,12 +3,17 @@
 # Update:
     # Date: May 10-12, 2025: First Implementation
     # Date: May 30, 2025: 
+    # Date: June 4, 2025: Added randomization of the agent and goal positions.
+    # Data: June 9, 2025: Added to save the Q-table and rewards per episode in csv/dict file type.
+    #                   : Clean the code.
 #########################################################################
 # Import minigrid lib
 import minigrid as mg
 import gymnasium as gym
+
 # Import defaultdict for dictionary with default values
 from collections import defaultdict
+
 # Import symbolic observation wrapper
 from minigrid.wrappers import SymbolicObsWrapper
 from gymnasium.wrappers import TimeLimit
@@ -23,6 +28,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import csv
 
 def randomize(env):
     """Randomly place the agent and the goal on different free (non-wall) tiles."""
@@ -62,9 +68,9 @@ class FirstVisitMonteCarlo:
     def __init__(self, env, Q={}):
         self.env = env
         self.gamma = 0.95
-        self.max_episodes = 300
-        self.max_steps = 10000
-        self.epsilon = 0.6
+        self.max_episodes = 700
+        self.max_steps = 5000
+        self.epsilon = 0.2
         self.Q = Q
         # Dictionary to sum returns for each state.
         self.Returns = defaultdict(list)
@@ -83,14 +89,16 @@ class FirstVisitMonteCarlo:
             return np.argmax(self.Q[state][:])
     
     def train(self, env):
+        ''' Trains the agent using First Visit Monte Carlo Control.'''
         episode = 0
         steps_arr = []
         rewards_per_episode = []
 
         while episode < self.max_episodes:
-            # For training purpose, set env to the specific state:
+            # For training purpose, set env to the specific seed:
             # obs, _ = env.reset()
             obs, _ = env.reset(seed=env.np_random_seed)
+            # Randomize the goal location and the agent's position for randomization. 
             # randomize(env)
 
             step = 0
@@ -98,28 +106,27 @@ class FirstVisitMonteCarlo:
             # Generate an episode:
             episode_state = []
 
-            # state = (obs['direction'], tuple(obs['image'].flatten()))
             state = (obs['direction'], obs['image'].data.tobytes())
 
             while not done and step < self.max_steps:
                 self.check_state(state)
                 action = self.pick_action(state)
                 obs2, reward, done, _, _ = env.step(action)
-                # env.render()
-                # state2 = (obs2['direction'], tuple(obs2['image'].flatten()))
                 state2 = (obs2['direction'], obs2['image'].data.tobytes())
                 # Apeend the state, action, and reward to the episode
-                # reward = reward if done else -0.5
                 episode_state.append((state, action, reward))
                 state = state2
                 step += 1
 
+            # Generate an episode return G
             G = 0
+            # First Visit Monte Carlo tracks the visited states
             visited = set()
             for t in reversed(range(len(episode_state))):
                 state, action, reward = episode_state[t]
                 G = self.gamma * G + reward
 
+                # Check if this is the first visit
                 if state not in visited:
                     visited.add(state)
 
@@ -155,9 +162,9 @@ def plot_graph(all_rewards):
     plt.figure(figsize=(12, 6))
     plt.plot(mean_rewards, label="Mean Reward", linewidth=2)
     plt.fill_between(range(len(mean_rewards)),
-                    mean_rewards - std_rewards,
-                    mean_rewards + std_rewards,
-                    alpha=0.3)
+        mean_rewards - std_rewards,
+        mean_rewards + std_rewards,
+        alpha=0.3)
     plt.xlabel("Episode")
     plt.ylabel("Average Reward")
     plt.title("Learning Curve Averaged Over 50 Trials")
@@ -170,30 +177,68 @@ def plot_graph(all_rewards):
 if __name__ == "__main__":
     rewards_arr = []
 
-    for trial in range(10):
+    for trial in range(1):
         # Create and initialize the environment
-        # env = gym.make("MiniGrid-FourRooms-v0")
-        # # env = gym.make("MiniGrid-FourRooms-v0", render_mode='human')
-        # # env = SymbolicObsWrapper(env)
-        # env = SymbolicObsWrapper(TimeLimit(env, max_episode_steps=5000))
-        env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=2000))
+        env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=5000))
         
         try:
-            with open('firstvisitmc.dict', 'rb') as file:
+            with open('firstvisitmc-3.dict', 'rb') as file:
                 starting_Q = pickle.load(file)
-                os.remove('firstvisitmc.dict')
+                os.remove('firstvisitmc-3.dict')
         except FileNotFoundError:
             starting_Q = {}
 
         # Initialize the class
         montecarlo = FirstVisitMonteCarlo(env, starting_Q)
-        trained_Q, steps_arr, rewards_pre_episode = montecarlo.train(env)
-        rewards_arr.append(rewards_pre_episode)
+        trained_Q, steps_arr, rewards_per_episode = montecarlo.train(env)
+        rewards_arr.append(rewards_per_episode)
 
-        with open('firstvisitmc.dict', 'wb') as file:
+        with open('firstvisitmc-3.dict', 'wb') as file:
             pickle.dump(trained_Q, file)
         
         print(f'Trial {trial + 1} completed.')
     
-    # Plot the results
+    # Save the rewards array to a CSV file
+    with open('fvmc_nonrand.csv', 'w') as file:
+        writer = csv.writer(file)
+        writer.writerows(rewards_arr)
+
+    # Plot the graph if needed. 
     plot_graph(rewards_arr)
+
+'''Used for testing different epsilon values'''
+# if __name__ == "__main__":
+#     rewards_eps = []
+#     epsilon = 0 # Initial epsilon value
+#     for i in range(1, 11):
+#         rewards_trials = []
+#         epsilon = i / 10.0
+#         print(f"Starting training with epsilon: {epsilon}")
+#         for trial in range(3):
+#             # Create and initialize the environment
+#             env = SymbolicObsWrapper(gym.make("MiniGrid-FourRooms-v0", max_steps=5000))
+            
+#             try:
+#                 with open('firstvisitmc.dict', 'rb') as file:
+#                     starting_Q = pickle.load(file)
+#                     os.remove('firstvisitmc.dict')
+#             except FileNotFoundError:
+#                 starting_Q = {}
+
+#             # Initialize the class
+#             montecarlo = FirstVisitMonteCarlo(env, starting_Q)
+#             trained_Q, steps_arr, rewards_per_episode = montecarlo.train(env, epsilon)
+#             # Append the rewards array to the rewards array collection
+#             rewards_trials.append(rewards_per_episode)
+
+#             with open('firstvisitmc.dict', 'wb') as file:
+#                 pickle.dump(trained_Q, file)
+            
+#             print(f'Trial {trial + 1} completed.')
+        
+#         rewards_eps.append(np.average(rewards_trials, axis=0))
+#         epsilon += 0.1
+    
+#     with open('mcfv_epsilon.csv', 'w') as file:
+#         writer = csv.writer(file)
+#         writer.writerows(rewards_eps)
